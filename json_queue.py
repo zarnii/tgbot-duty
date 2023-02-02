@@ -52,6 +52,24 @@ class Queue:
 		else:
 			return False
 
-	#вывод 
-	def cout(self):
-		print(self.queue)
+	#создание словоря дежурных
+	def cout_duty_queue(self) -> dict:
+		d = {}
+
+		for i in self.duty_queue:
+			d[i] = self.duty_queue[i]
+
+		return d
+
+	#создание словоря отсутвующих
+	def cout_absence(self) -> dict:
+		d = {}
+
+		for i in self.absence:
+			d[i] = self.absence[i]
+
+		return d
+
+q = Queue()
+d = q.cout_absence()
+print(d)
