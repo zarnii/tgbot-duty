@@ -69,7 +69,3 @@ class Queue:
 			d[i] = self.absence[i]
 
 		return d
-
-q = Queue()
-d = q.cout_absence()
-print(d)
