@@ -1,5 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, CallbackQuery
 from aiogram import Bot, Dispatcher, types, executor
+from datetime import datetime, timedelta
+from json_queue import Queue
 from config import TOKEN
 import logging
 
@@ -44,7 +46,30 @@ async def appoint_command(message: types.Message):
 			await message.reply(f'Укажите дежурных')
 
 
-#@dp.message_handler(commands=['pass']) фунция создания пропуска
+@dp.message_handler(commands=['pass'])
+async def create_pass(message: types.Message):
+	if message.get_args() != '':
+		pass_user = message.get_args().split(' ')
+
+		#достаем дату из сообщения
+		start = pass_user[1].split('-')[0]
+		end = pass_user[1].split('-')[1]
+		
+		#преобразуем строку в дату
+		start = datetime.strptime(start, '%d.%m.%Y')
+		end = datetime.strptime(end, '%d.%m.%Y')
+
+		#добовляем даты пропуска в массив
+		pass_dates = []
+		while start != end:
+			pass_dates.append(str(start.strftime('%d.%m.%Y')))
+			start += timedelta(days=1)
+
+		#добовляем отсутвующего
+		q = Queue()
+		q.enabsence(pass_user[0], pass_dates)
+	else:
+		await message.reply(f'Укажите человека и даты (пример: @username 01.02.2023-05.02.2023)')
 
 
 @dp.message_handler(text='Команды')
