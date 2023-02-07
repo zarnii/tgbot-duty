@@ -1,6 +1,6 @@
 import json
 
-class Queue:
+class JsonInterface:
 	def __init__(self):
 		#открывается файл для создания очереди
 		with open('data.json', 'r', encoding='UTF-8') as f:
@@ -9,10 +9,13 @@ class Queue:
 			self.duty_queue = self.data["duty_queue"]
 			self.absence = self.data["absence"]
 
-			self.queue = [] 
+			self.queue = []
 			for i in self.duty_queue:
 				self.queue.append(i)
 
+
+	def get_holidays(self):
+		return self.data["holidays"]
 
 	#вынимание первого из очереди
 	def dequeue(self):
@@ -23,7 +26,7 @@ class Queue:
 			self.duty_queue.pop(self.queue[0])
 			self.queue.pop(0)
 
-			#перезапись json файла 
+			#перезапись json файла
 			with open('data.json', 'w', encoding="UTF-8") as f:
 				f.write(json.dumps(self.data))
 
@@ -33,7 +36,7 @@ class Queue:
 		self.duty_queue[nickname] = date
 		self.queue.append(nickname)
 
-		#перезапись json файла 
+		#перезапись json файла
 		with open('data.json', 'w', encoding="UTF-8") as f:
 			f.write(json.dumps(self.data))
 
@@ -69,3 +72,6 @@ class Queue:
 			d[i] = self.absence[i]
 
 		return d
+
+j = JsonInterface()
+print(j.get_holidays())
