@@ -1,7 +1,8 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, CallbackQuery
 from aiogram import Bot, Dispatcher, types, executor
 from datetime import datetime, timedelta
-from json_queue import Queue
+from json_queue import JsonInterface
+from duty import make_duty
 from config import TOKEN
 import logging
 
@@ -40,8 +41,8 @@ async def appoint_command(message: types.Message):
 	else:
 		if message.get_args() != '':
 			queue = message.get_args().split(' ')
-			print(queue)
 			await message.reply(f'Задана очередь: {message.get_args()}')
+			await make_duty(queue, period_for_one_person)
 		else: 
 			await message.reply(f'Укажите дежурных')
 
@@ -66,10 +67,12 @@ async def create_pass(message: types.Message):
 			start += timedelta(days=1)
 
 		#добовляем отсутвующего
-		q = Queue()
+		q = JsonInterface()
 		q.enabsence(pass_user[0], pass_dates)
 	else:
 		await message.reply(f'Укажите человека и даты (пример: @username 01.02.2023-05.02.2023)')
+
+
 
 
 @dp.message_handler(text='Команды')
