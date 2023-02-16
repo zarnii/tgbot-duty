@@ -18,13 +18,13 @@ class JsonInterface:
 		return self.data["holidays"]
 
 	#вынимание первого из очереди
-	def dequeue(self):
+	def dequeue(self, name):
 		if len(self.queue) < 1:
 			return None
 		else:
 			#удаление из json файла и из списка queue
-			self.duty_queue.pop(self.queue[0])
-			self.queue.pop(0)
+			self.duty_queue.pop(name)
+			self.queue.remove(name)
 
 			#перезапись json файла
 			with open('data.json', 'w', encoding="UTF-8") as f:
@@ -72,6 +72,3 @@ class JsonInterface:
 			d[i] = self.absence[i]
 
 		return d
-
-j = JsonInterface()
-print(j.get_holidays())
