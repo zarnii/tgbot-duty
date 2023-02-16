@@ -75,8 +75,8 @@ async def create_pass(message: types.Message):
 			start += timedelta(days=1)
 
 		#добовляем отсутвующего
-		q = JsonInterface()
-		q.enabsence(pass_user[0], pass_dates)
+		j = JsonInterface()
+		j.enabsence(pass_user[0], pass_dates)
 	else:
 		await message.reply(f'Укажите человека и даты (пример: @username 01.02.2023-05.02.2023)')
 
@@ -89,8 +89,11 @@ async def confirm(callback: types.CallbackQuery):
 
 @dp.message_handler(commands=['delete'])
 async def delete_record(message: types.Message):
-	#user = message.get_args()
-	pass
+	j = JsonInterface()
+	users = message.get_args()
+	for i in users:
+		j.dequeue(i)
+
 
 
 @dp.message_handler(text='Команды')
