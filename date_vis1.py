@@ -45,6 +45,6 @@ def get_week(data: dict):
         if idx == 7:
             break
         else:
-            message += f"Сегодня {val[1]}, дежурит {val[0]}\n"
+            message += f"{val[1]}, дежурит {val[0]}\n"
 
     return message
