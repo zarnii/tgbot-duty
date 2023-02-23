@@ -16,6 +16,9 @@ class JsonInterface:
 
 	def get_holidays(self):
 		return self.data["holidays"]
+	
+	def get_absence(self):
+		return self.data["absence"]
 
 	#вынимание первого из очереди
 	def dequeue(self, name):
