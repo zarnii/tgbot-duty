@@ -14,14 +14,23 @@ class JsonInterface:
 				self.queue.append(i)
 
 
-	def get_holidays(self):
+	def get_queue(self) -> list:
+		return self.queue
+
+	def get_period(self) -> int:
+		return self.data["duty_period"]
+
+
+	def get_holidays(self) -> list:
 		return self.data["holidays"]
 	
-	def get_absence(self):
+
+	def get_absence(self) -> list:
 		return self.data["absence"]
 
+
 	#вынимание первого из очереди
-	def dequeue(self, name):
+	def dequeue(self, name) -> None:
 		if len(self.queue) < 1:
 			return None
 		else:
@@ -51,12 +60,20 @@ class JsonInterface:
 		with open('data.json', 'w', encoding="UTF-8") as f:
 			f.write(json.dumps(self.data))
 
+
 	#проверка на пустоту
-	def empty(self):
+	def empty(self) -> bool:
 		if len(self.queue) < 1:
 			return True
 		else:
 			return False
+
+
+	#делает duty_queue пустым
+	def clear_duty_queue(self) -> None:
+		self.duty_queue.clear()
+		with open('data.json', 'w', encoding="UTF-8") as f:
+			f.write(json.dumps(self.data))
 
 	#создание словоря дежурных
 	def cout_duty_queue(self) -> dict:
@@ -75,3 +92,7 @@ class JsonInterface:
 			d[i] = self.absence[i]
 
 		return d
+
+if __name__ == '__main__':
+	j = JsonInterface()
+	j.create_empty()

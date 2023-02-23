@@ -1,6 +1,6 @@
 import logging
 from typing import List
-from config import TOKEN
+#from config import TOKEN
 from duty import make_duty
 from dataclasses import dataclass, field
 from json_queue import JsonInterface
@@ -11,14 +11,21 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token=TOKEN)
+bot = Bot(token='5917006134:AAEqy2hT2tez2dbfg-Powucxa5Mz4gQNmRA')
 dp = Dispatcher(bot)
+j = JsonInterface()
 
 @dataclass
 class Data:
-	period_for_one_person: int = 0
+	period_for_one_person: int
 	queue: List[str] = field(default_factory=list)
-Data = Data()
+
+	def __init__(self, period: int, queue: list):
+		self.period_for_one_person = period
+		self.queue = queue
+
+Data = Data(j.get_period(), j.get_queue())
+
 
 kb = ReplyKeyboardMarkup(keyboard=[
 	[KeyboardButton(text='Команды'),KeyboardButton(text='Узнать период'),KeyboardButton(text='Узнать расписание')]
@@ -27,6 +34,7 @@ kb = ReplyKeyboardMarkup(keyboard=[
 ikb = InlineKeyboardMarkup(inline_keyboard=[
 	[InlineKeyboardButton(text='Да', callback_data='yes'), InlineKeyboardButton(text='Нет', callback_data='no')],
 ])
+
 
 @dp.message_handler(commands=['start'])
 async def start_command(message: types.Message):
@@ -37,6 +45,7 @@ async def start_command(message: types.Message):
 async def set_period(message: types.Message):
 	try:
 		Data.period_for_one_person = int(message.get_args())
+		j.set_period(int(message.get_args()))
 		await message.answer(f'Установлен период дежурства для одного человека: {Data.period_for_one_person}')
 	except ValueError:
 		await message.reply('Введите число!')
@@ -75,7 +84,6 @@ async def create_pass(message: types.Message):
 			start += timedelta(days=1)
 
 		#добовляем отсутвующего
-		j = JsonInterface()
 		j.enabsence(pass_user[0], pass_dates)
 	else:
 		await message.reply(f'Укажите человека и даты (пример: @username 01.02.2023-05.02.2023)')
@@ -83,17 +91,19 @@ async def create_pass(message: types.Message):
 
 @dp.callback_query_handler(text='yes')
 async def confirm(callback: types.CallbackQuery):
+	print(Data.queue, Data.period_for_one_person)
 	await make_duty(Data.queue, Data.period_for_one_person)
 	await callback.message.answer('Расписание составлено')
 
 
 @dp.message_handler(commands=['delete'])
 async def delete_record(message: types.Message):
-	j = JsonInterface()
-	users = message.get_args()
-	for i in users:
-		j.dequeue(i)
-
+	names = message.get_args().split(' ')
+	#print(names)
+	for name in names:
+		Data.queue.remove(name)		
+	j.clear_duty_queue()
+	await make_duty(Data.queue, Data.period_for_one_person)
 
 
 @dp.message_handler(text='Команды')
