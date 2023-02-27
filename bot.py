@@ -1,6 +1,6 @@
 import logging
 from typing import List
-#from config import TOKEN
+from config import TOKEN
 from duty import make_duty
 from dataclasses import dataclass, field
 from json_queue import JsonInterface
@@ -11,7 +11,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token='5917006134:AAEqy2hT2tez2dbfg-Powucxa5Mz4gQNmRA')
+bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 j = JsonInterface()
 
