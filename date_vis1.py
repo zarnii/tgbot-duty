@@ -34,17 +34,19 @@ def get_today_shift(data: dict):
 
 
 def get_week(data: dict):
-    date_n_worker = []
+    date_worker = []
+    today = datetime.now().strftime("%d.%m.%Y")
 
     for key in data:
         for value in data[key]:
-            date_n_worker.append((key, value))
-
+            date_worker.append((key, value))
     message = ''
-    for idx, val in enumerate(date_n_worker):
-        if idx == 7:
-            break
-        else:
-            message += f"{val[1]}, дежурит {val[0]}\n"
+    for i,val in enumerate(date_worker):
+        if val[1] == today:
+            for idx, val in enumerate(date_worker, start=i):
+                if idx == 7:
+                    break
+                else:
+                    message += f"Сегодня {val[1]}, дежурит {val[0]}\n"
 
     return message
