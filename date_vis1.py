@@ -50,3 +50,21 @@ def get_week(data: dict):
                     message += f"Сегодня {val[1]}, дежурит {val[0]}\n"
 
     return message
+
+def get_period_vis(data: dict, start: str, end: str):
+    date_worker = []
+    for key in data:
+        for value in data[key]:
+            date_worker.append((key,value))
+    message = ''
+    if start not in date_worker or end not in date_worker:
+        message += "Дата начала/конца выходит за рамки расписания"
+        return message
+    for i, val in enumerate(date_worker):
+        if val[1] == start:
+            for idx, val in enumerate(date_worker, start=i):
+                if val[1] == end:
+                    break
+                else:
+                    message += f"{val[1]}, дежурит {val[0]}\n"
+    return message
