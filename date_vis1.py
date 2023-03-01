@@ -14,7 +14,7 @@ def get_tomorrow_shift(data: dict):
                     mensaje += f"Завтра {value}, дежурит {key} "
                 except TypeError as error:
                     print(error)
-                    mensaje += "На сегодня не назначен дежурный"
+                    mensaje += "На завтра не назначен дежурный"
 
                 return mensaje
 
@@ -29,7 +29,7 @@ def get_today_shift(data: dict):
                     mensaje += f"Сегодня {value}, дежурит {key}"
                 except TypeError as error:
                     print(error)
-                    mensaje += "На сегодня не назначен дежурный"
+                    mensaje += "На завтра не назначен дежурный"
                 return mensaje
 
 
@@ -47,7 +47,7 @@ def get_week(data: dict):
                 if idx == 7:
                     break
                 else:
-                    message += f"Сегодня {val[1]}, дежурит {val[0]}\n"
+                    message += f"{val[1]}, дежурит {val[0]}\n"
 
     return message
 
