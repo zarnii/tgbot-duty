@@ -1,11 +1,12 @@
 import logging
 from typing import List
-from config import TOKEN
-from duty import make_duty
+from config import TOKEN, COMMANDS
+from duty import make_duty, remake_duty
 from dataclasses import dataclass, field
 from json_queue import JsonInterface
 from datetime import datetime, timedelta
 from aiogram import Bot, Dispatcher, types, executor
+from dates import get_tomorrow_shift, get_today_shift, get_week
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 
@@ -23,12 +24,17 @@ class Data:
 	def __init__(self, period: int, queue: list):
 		self.period_for_one_person = period
 		self.queue = queue
+		print(f'\n---Создан экземпляр класса Data---\nperiod_for_one_person - {self.period_for_one_person}\nqueue - {self.queue}')
 
 Data = Data(j.get_period(), j.get_queue())
 
 
 kb = ReplyKeyboardMarkup(keyboard=[
-	[KeyboardButton(text='Команды'),KeyboardButton(text='Узнать период'),KeyboardButton(text='Узнать расписание')]
+	[KeyboardButton(text='Команды'),KeyboardButton(text='Узнать период'),KeyboardButton(text='Клавиатура рассписания')]
+], resize_keyboard=True)
+
+kbdate = ReplyKeyboardMarkup(keyboard=[
+	[KeyboardButton(text='Сегодня'), KeyboardButton(text='Завтра'), KeyboardButton(text='Неделя'), KeyboardButton(text='Назад')]
 ], resize_keyboard=True)
 
 ikb = InlineKeyboardMarkup(inline_keyboard=[
@@ -59,7 +65,6 @@ async def appoint_command(message: types.Message):
 		if message.get_args() != '':
 			Data.queue = message.get_args().split(' ')
 			await message.reply(f'Задана очередь: {message.get_args()}\nВсе верно?', reply_markup = ikb)
-			#await make_duty(queue, period_for_one_person)
 		else: 
 			await message.reply(f'Укажите дежурных')
 
@@ -86,29 +91,30 @@ async def create_pass(message: types.Message):
 		#добовляем отсутвующего
 		j.enabsence(pass_user[0], pass_dates)
 	else:
-		await message.reply(f'Укажите человека и даты (пример: @username 01.02.2023-05.02.2023)')
+		await message.reply(f'Укажите человека и даты (пример: username 01.02.2023-05.02.2023)')
 
 
 @dp.callback_query_handler(text='yes')
 async def confirm(callback: types.CallbackQuery):
 	print(Data.queue, Data.period_for_one_person)
-	await make_duty(Data.queue, Data.period_for_one_person)
+	j.clear_duty_queue()
+	await make_duty(Data.queue, Data.period_for_one_person, j)
 	await callback.message.answer('Расписание составлено')
 
 
 @dp.message_handler(commands=['delete'])
 async def delete_record(message: types.Message):
 	names = message.get_args().split(' ')
-	#print(names)
+	print(f'Требуется удалить {names}')
 	for name in names:
-		Data.queue.remove(name)		
-	j.clear_duty_queue()
-	await make_duty(Data.queue, Data.period_for_one_person)
+		j.dequeue(name)
+		Data.queue.remove(name)
+	await callback.message.answer('Удаление было успешно произведено')
 
 
 @dp.message_handler(text='Команды')
 async def command_btn_pressed(message: types.Message):
-	await message.answer('/set_period - команда для установки периода дежуртсва для одного человека\n/appoint - создание списка дежурства')
+	await message.answer(COMMANDS)
 
 
 @dp.message_handler(text='Узнать период')
@@ -116,9 +122,38 @@ async def period_btn_pressed(message: types.Message):
 	await message.answer(f'Заданный период: {Data.period_for_one_person}')
 
 
-@dp.message_handler(text='Узнать расписание')
+@dp.message_handler(text='Клавиатура рассписания')
 async def duty_btn_pressed(message: types.Message):
-	await message.answer(f'Список дежурных: {Data.queue}')
+	await message.answer('Выберите', reply_markup = kbdate)
+
+
+@dp.message_handler(text='Сегодня')
+async def today(message: types.Message):
+	text = get_today_shift(j.cout_duty_queue())
+	if text == None:
+		await message.answer('Сегодня дежурных нет')
+	else:
+		await message.answer(text)
+
+@dp.message_handler(text='Завтра')
+async def tomorrow(message: types.Message):
+	text = get_tomorrow_shift(j.cout_duty_queue())
+	if text == None:
+		await message.answer('Завтра дежурных нет')
+	else:
+		await message.answer(text)
+
+
+@dp.message_handler(text='Неделя')
+async def tomorrow(message: types.Message):
+	text = get_week(j.cout_duty_queue())
+	await message.answer(text)
+
+
+@dp.message_handler(text='Назад')
+async def tomorrow(message: types.Message):
+	await message.delete()
+	await message.answer('Назад', reply_markup=kb)
 
 
 @dp.message_handler()

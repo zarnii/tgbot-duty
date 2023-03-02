@@ -8,14 +8,10 @@ class JsonInterface:
 
 			self.duty_queue = self.data["duty_queue"]
 			self.absence = self.data["absence"]
-
-			self.queue = []
-			for i in self.duty_queue:
-				self.queue.append(i)
-
+			print(f'\n---Создан экземпляр класса JsonInterface---\nduty_queue - {self.duty_queue}\nabsence - {self.absence}')
 
 	def get_queue(self) -> list:
-		return self.queue
+		return list(self.duty_queue.keys())
 
 	def get_period(self) -> int:
 		return self.data["duty_period"]
@@ -29,14 +25,21 @@ class JsonInterface:
 		return self.data["absence"]
 
 
+	def set_period(self, period: int) -> None:
+		self.data["duty_period"] = period
+
+		with open('data.json', 'w', encoding="UTF-8") as f:
+				f.write(json.dumps(self.data))
+
+
 	#вынимание первого из очереди
 	def dequeue(self, name) -> None:
-		if len(self.queue) < 1:
+		if len(list(self.duty_queue.keys())) < 1:
 			return None
 		else:
 			#удаление из json файла и из списка queue
+			print(f'\n---РАБОТАЕТ dequeue---\nудаляется {name}')
 			self.duty_queue.pop(name)
-			self.queue.remove(name)
 
 			#перезапись json файла
 			with open('data.json', 'w', encoding="UTF-8") as f:
@@ -45,8 +48,8 @@ class JsonInterface:
 
 	#добавление в очередь
 	def enqueue(self, nickname: str, date: list) -> None:
+		print(f'\n---РАБОТАЕТ enqueue---\nдобавялется {nickname} с датой {date}')
 		self.duty_queue[nickname] = date
-		self.queue.append(nickname)
 
 		#перезапись json файла
 		with open('data.json', 'w', encoding="UTF-8") as f:
@@ -63,7 +66,7 @@ class JsonInterface:
 
 	#проверка на пустоту
 	def empty(self) -> bool:
-		if len(self.queue) < 1:
+		if len(list(self.duty_queue.keys())) < 1:
 			return True
 		else:
 			return False
