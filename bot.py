@@ -7,6 +7,10 @@ from json_queue import JsonInterface
 from datetime import datetime, timedelta
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+import aioschedule
+import asyncio
+
+us_id = 123456789 # указать здесь свой айди, для отправкии сообщения в лс конкретному человеку
 
 
 logging.basicConfig(level=logging.INFO)
@@ -115,6 +119,20 @@ async def duty_btn_pressed(message: types.Message):
 async def appoint_command(message: types.Message):
 	await message.reply('Нет такой команды')
 
+	
+async def send_mess():
+    await bot.send_message(us_id, "Сегодня дежурит: *такой-то*")
+
+
+async def scheduler():
+    aioschedule.every().day.at("9:00").do(send_mess)
+    while True:
+        await aioschedule.run_pending()
+        await asyncio.sleep(1)
+
+
+async def on_startup(dp):
+    asyncio.create_task(scheduler())
 
 if __name__ == '__main__':
-	executor.start_polling(dp, skip_updates=True)
+	executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
