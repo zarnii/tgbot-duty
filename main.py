@@ -19,10 +19,11 @@ def make_duty(names: list, period: int) -> None:
         # for j in range(period - len(dates)):
         while len(dates) < period:
             date = (datetime.now() + timedelta(days=k)).strftime("%d.%m")
+            check_week = (datetime.now() + timedelta(days=k)).strftime("%A")
             date_miss = (datetime.now() + timedelta(days=k)).strftime("%d.%m.%Y")
 
             date_add = (datetime.now() + timedelta(days=k)).strftime("%d.%m.%Y")
-            if date not in holidays:
+            if date not in holidays and (check_week not in ('Saturday', 'Sunday')):
                 if date_miss not in absence[name]:
                     k += 1
                     dates.append(date_add)
