@@ -44,11 +44,10 @@ def get_week(data: dict):
     for i,val in enumerate(date_worker):
         if val[1] == today:
             for idx, val in enumerate(date_worker, start=i):
-                if idx == 7:
+                if 6 < idx:
                     break
                 else:
-                    message += f"{val[1]}, дежурит {val[0]}\n"
-
+                    message += f"Сегодня {val[1]}, дежурит {val[0]}\n"
     return message
 
 def get_period_vis(data: dict, start: str, end: str):
