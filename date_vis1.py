@@ -48,6 +48,9 @@ def get_week(data: dict):
                     break
                 else:
                     message += f"Сегодня {val[1]}, дежурит {val[0]}\n"
+        else:
+            message += "В рассписании нет сегодняшней даты"
+            break
     return message
 
 def get_period_vis(data: dict, start: str, end: str):
