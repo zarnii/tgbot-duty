@@ -22,7 +22,7 @@ class JsonInterface:
 	
 
 	def get_absence(self) -> list:
-		return self.data["absence"]
+		return list(self.absence.keys())
 
 
 	def set_period(self, period: int) -> None:
@@ -31,8 +31,14 @@ class JsonInterface:
 		with open('data.json', 'w', encoding="UTF-8") as f:
 				f.write(json.dumps(self.data))
 
+	def set_all_queue(self, new):
+		self.data["duty_queue"] = new
 
-	#вынимание первого из очереди
+		with open('data.json', 'w', encoding="UTF-8") as f:
+				f.write(json.dumps(self.data))
+
+
+	#вынимание очереди
 	def dequeue(self, name) -> None:
 		if len(list(self.duty_queue.keys())) < 1:
 			return None
@@ -78,6 +84,11 @@ class JsonInterface:
 		with open('data.json', 'w', encoding="UTF-8") as f:
 			f.write(json.dumps(self.data))
 
+	def clear_absence(self) -> None:
+		self.absence.clear()
+		with open('data.json', 'w', encoding="UTF-8") as f:
+			f.write(json.dumps(self.data))
+
 	#создание словоря дежурных
 	def cout_duty_queue(self) -> dict:
 		d = {}
@@ -88,13 +99,8 @@ class JsonInterface:
 		return d
 
 	#создание словоря отсутвующих
-	def cout_absence(self) -> dict:
-		d = {}
-
-		for i in self.absence:
-			d[i] = self.absence[i]
-
-		return d
+	def get_absence_dict(self) -> dict:
+		return self.data["absence"]
 
 if __name__ == '__main__':
 	j = JsonInterface()

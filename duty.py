@@ -2,26 +2,29 @@ from datetime import datetime, timedelta
 from json_queue import JsonInterface
 
 
-async def make_duty(names: list, period: int, q: JsonInterface, k: int = 1) -> None:
+def make_duty(names: list, period: int, q: JsonInterface, k: int = 1) -> None:
 	for name in names:
 		q.enqueue(name, [])
-		q.enabsence(name, [])
+		if name not in q.get_absence():
+			q.enabsence(name, [])
 	dates_for_next = []
+	k = 1
 	holidays = q.get_holidays()
-	absence = q.cout_absence()
+	absence = q.get_absence_dict()
 	for name in names:
 		dates = []
 		for days in dates_for_next:
 			dates.append(days)
-		#print(dates)
+		print(dates)
 		dates_for_next = []
 		# for j in range(period - len(dates)):
 		while len(dates) < period:
 			date = (datetime.now() + timedelta(days=k)).strftime("%d.%m")
+			check_week = (datetime.now() + timedelta(days=k)).strftime("%A")
 			date_miss = (datetime.now() + timedelta(days=k)).strftime("%d.%m.%Y")
 
 			date_add = (datetime.now() + timedelta(days=k)).strftime("%d.%m.%Y")
-			if date not in holidays:
+			if date not in holidays and (check_week not in ('Saturday', 'Sunday')):
 				if date_miss not in absence[name]:
 					k += 1
 					dates.append(date_add)
@@ -33,16 +36,52 @@ async def make_duty(names: list, period: int, q: JsonInterface, k: int = 1) -> N
 		q.enqueue(name, dates)
 
 
-def remake_duty(id_:int, j: JsonInterface):
-	'''
-	-в def передается никнейм человека(id_) с которого надо пересоставить расписание(никнейм человека после которого был удален человек)
-	-в переменную start помешяется последняя дата дежуртсва id_ в формате datetime
-	-затем получаем список людей для которых нужно пересоставить расписание(remake_duty_name)
-	-пересоставляем расписание по принципу работы make_duty
-	'''
+def remake_duty(id_:int, j: JsonInterface) -> None:
+	#я не знаю как оно работает
 	q = j.cout_duty_queue()
-	name = list(q.keys())[id_]
-	start = datetime.strptime(q[name][j.get_period()-1], '%d.%m.%Y')
+	
+	if id_ >= 0:
+		name = list(q.keys())[id_]
+		start = datetime.strptime(q[name][j.get_period()-1], '%d.%m.%Y')
+
+		id_ += 1
+		period = j.get_period()
+		while id_ < len(q):
+			name = list(q.keys())[id_]
+			arr = []
+			for i in range(period):
+				start += timedelta(days=1)
+				if start.weekday() == 5:
+					start += timedelta(days=2)
+				elif start.weekday() == 6:
+					start += timedelta(days=1)
+				arr.append(start.strftime("%d.%m.%Y"))
+			q[name] = arr
+			id_ += 1
+			print(f'Для {name} - {arr}')
+		print(f'---НОВОЕ РАСПИСАНИЕ---\n{q}')
+		j.set_all_queue(q)
+	elif id_ < 0:
+		id_ = 0 
+		name = list(q.keys())[id_]
+		start = datetime.now()
+		period = j.get_period()
+
+		while id_ < len(q):
+			name = list(q.keys())[id_]
+			arr = []
+			for i in range(period):
+				start += timedelta(days=1)
+				if start.weekday() == 5:
+					start += timedelta(days=2)
+				elif start.weekday() == 6:
+					start += timedelta(days=1)
+				arr.append(start.strftime("%d.%m.%Y"))
+			q[name] = arr
+			id_ += 1
+			print(f'Для {name} - {arr}')
+		print(f'---НОВОЕ РАСПИСАНИЕ---\n{q}')
+		j.set_all_queue(q)
 
 
 if __name__ == "__main__":
