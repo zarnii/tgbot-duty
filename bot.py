@@ -35,7 +35,7 @@ Data = Data(j.get_period(), j.get_queue())
 
 
 kb = ReplyKeyboardMarkup(keyboard=[
-	[KeyboardButton(text='Команды'),KeyboardButton(text='Узнать период'),KeyboardButton(text='Сегодня'), KeyboardButton(text='Завтра'), KeyboardButton(text='Неделя'), KeyboardButton(text='Для разработки')]
+	[KeyboardButton(text='Команды'),KeyboardButton(text='Узнать период'),KeyboardButton(text='Сегодня'), KeyboardButton(text='Завтра'), KeyboardButton(text='Неделя'), KeyboardButton(text='Для разработки'), KeyboardButton(text='Help')]
 ], resize_keyboard=True)
 
 kbdev = ReplyKeyboardMarkup(keyboard=[
@@ -46,10 +46,17 @@ ikb = InlineKeyboardMarkup(inline_keyboard=[
 	[InlineKeyboardButton(text='Да', callback_data='yes'), InlineKeyboardButton(text='Нет', callback_data='no')],
 ])
 
-
 @dp.message_handler(commands=['start'])
 async def start_command(message: types.Message):
 	await message.answer('Привет, я бот для создания рассписания', reply_markup=kb)
+
+@dp.message_handler(commands=['Help']) 
+async def Help_command(message: types.Message):
+await message.answer('''/set_period - устанавливает период для одного человека. Пример: /set_period 2
+/appoint - задает очередь деружства. Пример: /appoint zarniiwhy krakazabrya123
+/pass - помещает работника в список отсутвующих. Пример: krakazabrya123 01.02.2023-05.02.2023
+/delete - удаляет работника из списка дужерных. Пример: /delete krakazabrya123
+''', reply_markup=kbHelp)
 
 
 @dp.message_handler(commands=['set_period'])
@@ -178,7 +185,6 @@ async def back_btn_pressed(message: types.Message):
 @dp.message_handler(text='Узнать период')
 async def period_btn_pressed(message: types.Message):
 	await message.answer(f'Заданный период: {Data.period_for_one_person}')
-
 
 
 @dp.message_handler(text='Сегодня')
