@@ -33,6 +33,7 @@ def get_today_shift(data: dict):
                 return mensaje
 
 
+
 def get_week(data: dict):
     date_worker = []
     today = datetime.now().strftime("%d.%m.%Y")
@@ -41,16 +42,16 @@ def get_week(data: dict):
         for value in data[key]:
             date_worker.append((key, value))
     message = ''
+    if len(date_worker) == 0:
+        message += "В расписании нет сегодняшней даты"
+        return message
     for i,val in enumerate(date_worker):
         if val[1] == today:
             for idx, val in enumerate(date_worker, start=i):
                 if 6 < idx:
                     break
                 else:
-                    message += f"Сегодня {val[1]}, дежурит {val[0]}\n"
-        else:
-            message += "В рассписании нет сегодняшней даты"
-            break
+                    message += f"{val[1]}, дежурит {val[0]}\n"
     return message
 
 def get_period_vis(data: dict, start: str, end: str):
