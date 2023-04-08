@@ -31,12 +31,6 @@ class JsonInterface:
 		with open('data.json', 'w', encoding="UTF-8") as f:
 				f.write(json.dumps(self.data))
 
-	def set_all_queue(self, new):
-		self.data["duty_queue"] = new
-
-		with open('data.json', 'w', encoding="UTF-8") as f:
-				f.write(json.dumps(self.data))
-
 
 	#вынимание очереди
 	def dequeue(self, name) -> None:
@@ -91,12 +85,7 @@ class JsonInterface:
 
 	#создание словоря дежурных
 	def cout_duty_queue(self) -> dict:
-		d = {}
-
-		for i in self.duty_queue:
-			d[i] = self.duty_queue[i]
-
-		return d
+		return self.duty_queue
 
 	#создание словоря отсутвующих
 	def get_absence_dict(self) -> dict:
