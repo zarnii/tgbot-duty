@@ -5,7 +5,7 @@ from typing import List
 from telethon import TelegramClient
 from fsm import BotStates
 from config import TOKEN, COMMANDS
-from duty import make_duty, remake_duty
+from duty import make_duty
 from dataclasses import dataclass, field
 from json_queue import JsonInterface
 from datetime import datetime, timedelta
@@ -87,6 +87,7 @@ async def Help_command(message: types.Message):
 	await message.answer('Команды бота: ')
 	await message.answer(COMMANDS)
 
+
 @dp.message_handler(text='Команды')
 async def command_button(message: types.Message):
 	await message.answer('Команды', reply_markup=cmdkb)
@@ -124,18 +125,11 @@ async def back_button(message: types.Message):
 	await message.answer('Назад', reply_markup=kb)
 
 
-
 @dp.message_handler(commands=['add'])
 async def add_button(message: types.Message):
 	await message.answer('Напишие никней пользователя, которого необходимо добвать')
 	await BotStates.ADD_STATE.set()
 
-
-'''
-@dp.message_handler(text='Команды')
-async def command_btn_pressed(message: types.Message):
-	await message.answer(COMMANDS)
-'''
 
 @dp.message_handler(text='Для разработки')
 async def dev_button(message: types.Message):
@@ -171,40 +165,51 @@ async def execution_period_button(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state = BotStates.APPOINT_STATE)
 async def execution_appoint_button(message: types.Message, state: FSMContext):
-	Data.queue = message.text.split(' ')
-	await message.reply(f'Задана очередь: {message.text}\nВсе верно?', reply_markup = ikb)
+	q = message.text.split(' ')
+	for i in q:
+		if does_exist(i):
+			Data.queue.append(i)
+		else:
+			await message.answer(f'{i} нельзя добавить')
+	if len(Data.queue) != 0:
+		await message.reply(f'Задана очередь: {Data.queue}\nВсе верно?', reply_markup = ikb)
+	else:
+		await message.reply(f'Ни одно из пользователей нельзя добавить')
 	await state.finish()
 
 
 @dp.message_handler(state = BotStates.PASS_STATE)
 async def execution_create_pass_button(message: types.Message, state: FSMContext):
 	pass_user = message.text.split(' ')
-	if len(pass_user) != 2:
+	if not does_exist(pass_user[0]):
+		await message.reply(f'Нельзя добавить этого пользователя')
+		await state.finish()
+		return
+	if len(pass_user) != 2 and len(pass_user[1]) != 21:
 		await message.reply(f'Укажите человека и даты (пример: username 01.02.2023-05.02.2023)')
 	else:
-		if len(pass_user[1]) != 21:
-			await message.reply(f'Укажите дату правильно! (пример: username 01.02.2023-05.02.2023)')
-		else:
 		#достаем дату из сообщения
-			try:
-				start = pass_user[1].split('-')[0]
-				end = pass_user[1].split('-')[1]
+		try:
+			start = pass_user[1].split('-')[0]
+			end = pass_user[1].split('-')[1]
 				
-				#преобразуем строку в дату
-				start = datetime.strptime(start, '%d.%m.%Y')
-				end = datetime.strptime(end, '%d.%m.%Y')
-				#добовляем даты пропуска в массив
-				pass_dates = []
-				while start != end:
-					pass_dates.append(str(start.strftime('%d.%m.%Y')))
-					start += timedelta(days=1)
-				#добовляем отсутвующего
-				j.enabsence(pass_user[0], pass_dates)
-				await message.reply(f'Операция была успешна проведена')
-				await state.finish()
-			except ValueError:
-				await message.reply(f'Укажите дату правильно! (пример: username 01.02.2023-05.02.2023)')
-
+			#преобразуем строку в дату
+			start = datetime.strptime(start, '%d.%m.%Y')
+			end = datetime.strptime(end, '%d.%m.%Y')
+			#добовляем даты пропуска в массив
+			pass_dates = []
+			while start != end:
+				pass_dates.append(str(start.strftime('%d.%m.%Y')))
+				start += timedelta(days=1)
+			#добовляем отсутвующего
+			j.enabsence(pass_user[0], pass_dates)
+			await message.reply(f'Операция была успешна проведена')
+			make_duty(Data.queue, Data.period_for_one_person, j)
+			await state.finish()
+		except ValueError:
+			await message.reply(f'Укажите дату правильно! (пример: username 01.02.2023-05.02.2023)')
+			await state.finish()
+			
 
 @dp.message_handler(state = BotStates.DELETE_STATE)
 async def execution_delete_button(message: types.Message, state: FSMContext):
@@ -245,7 +250,6 @@ async def execution_add_button(message: types.Message, state: FSMContext):
 		#await bot.send_message(CHAT_ID, f'Расписание было изменено: {Data.queue}')
 		await state.finish()
 
-
 #---------------Обработка callback----------------------------------------
 @dp.callback_query_handler(text='yes')
 async def confirm(callback: types.CallbackQuery):
@@ -254,6 +258,11 @@ async def confirm(callback: types.CallbackQuery):
 	make_duty(Data.queue, Data.period_for_one_person, j)
 	await callback.message.answer('Расписание составлено')
 	#await bot.send_message(CHAT_ID, f'Расписание составлено: {Data.queue}')
+
+@dp.callback_query_handler(text='no')
+async def confirm(callback: types.CallbackQuery):
+	Data.queue.clear()
+	await callback.message.answer('Отмена')
 	
 
 #---------------Обработка дней---------------------------------------------
@@ -299,7 +308,7 @@ async def send_mess():
 
 
 async def scheduler():
-	aioschedule.every().day.at("13:45").do(send_mess)
+	aioschedule.every().day.at("9:00").do(send_mess)
 	while True:
 		await aioschedule.run_pending()
 		await asyncio.sleep(1)
@@ -310,4 +319,6 @@ async def on_startup(dp):
 
 
 if __name__ == '__main__':
+	for i in User_list:
+		print(f'User_list - {i.username}')
 	executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
